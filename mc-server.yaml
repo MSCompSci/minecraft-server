@@ -1,0 +1,234 @@
+# Custom Minecraft Server Kube for Podman
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2025-03-15T00:14:00Z"
+  labels:
+    app: minecraft-server-pod
+  name: minecraft-server-pod
+spec:
+  containers:
+    - name: minecraft-server
+      image: docker.io/itzg/minecraft-server:latest
+      ports:
+      - containerPort: 25565
+        hostPort: 25565
+      resources:
+        limits:
+          cpu: 2
+          memory: 8Gi
+      stdin: TRUE
+      tty: TRUE
+      volumeMounts:
+      - name: minecraft-data
+        mountPath: /data
+      env:
+        # General
+        - name: TERM
+          value: xterm
+        # Server
+        # - name: SERVER_NAME
+        #   value: 'Server Name'
+        # - name: MOTD
+        #   value: "Message of the Day"
+        # - name: ICON
+        #   value: https:// ...
+        - name: MAX_PLAYERS
+          value: 6
+        # - name: OPS
+        #   value: username, username
+        - name: ENABLE_WHITELIST
+          value: TRUE
+        # - name: WHITELIST
+        #   value: username, username
+        - name: TZ
+          value: America/New_York
+        - name: EULA
+          value: TRUE
+        - name: ENABLE_RCON
+          value: FALSE
+        - name: SNOOPER_ENABLED
+          value: FALSE
+        # JVM Options
+        - name: USE_AIKAR_FLAGS
+          value: TRUE
+        - name: INIT_MEMORY
+          value: 1G
+        - name: MAX_MEMORY
+          value: 6G
+        # Minecraft Options
+        - name: TYPE
+          value: FABRIC
+        - name: FABRIC_LOADER_VERSION
+          value: 0.16.10
+        - name: VERSION
+          value: 1.20.1
+        # Mods
+        - name: MODRINTH_LOADER
+          value: FABRIC
+        - name: MODRINTH_PROJECTS
+          value: |
+            fabric-api
+            fabric-language-kotlin
+            
+            architectury-api
+            cardinal-components-api
+            do-api
+            yungs-api
+
+            cloth-config
+            fzzy-config
+            resourceful-config
+
+            balm
+            bookshelf-lib
+            botarium
+            creativecore
+            collective
+            formations
+            geckolib
+            glitchcore:beta
+            moonlight
+            patchouli:1.20.1-81-fabric
+            playeranimator:beta
+            resourceful-lib
+            supermartijn642s-config-lib
+            supermartijn642s-core-lib
+            terrablender:beta
+            trinkets
+            txnilib
+            yacl
+
+            c2me-fabric:alpha
+            chunky
+            clumps
+            debugify
+            ferrite-core
+            modernfix
+            no-chat-reports
+            noisium
+            threadtweak
+            vmp-fabric:alpha
+            yosbr
+
+            areas
+            biomes-o-plenty:beta
+            creeper-overhaul
+            formations-overworld
+            friends-and-foes
+            friends-and-foes-beekeeper-hut-fabric
+            friends-and-foes-flowery-mooblooms-fabric
+            lovely_snails
+            more-mob-variants
+            mythic-mounts
+            naturalist
+            random-village-names
+            ribbits
+            smarter-farmers-farmers-replant
+            villager-names-serilum
+            villagersplus
+            
+            carry-on
+            crops-love-rain
+            cycle-paintings
+            dismount-entity
+            double-doors
+            extract-poison
+            fallingtree
+            followers-teleport-too
+            furnace-recycle
+            grindstone-sharper-tools
+            kaffees_dual_ride
+            lootr
+            move-boats
+            move-minecarts
+            no-hostiles-around-campfire
+            nutritious-milk
+            pet-names
+            villager-death-messages
+            village-bell-recipe
+            waystones
+            yigd
+
+            appleskin
+            emi
+            emi-loot
+            jade
+            jade-addons-fabric
+            jei:beta
+            just-enough-professions-jep:beta
+            open-parties-and-claims:beta
+            trade-cycling
+            trashslot
+            xaeros-minimap
+            xaeros-world-map
+
+            botany-pots
+            botany-trees
+
+            create-fabric:beta
+            slice-and-dice
+            createaddition:beta
+            create-deco
+            create-steam-n-rails
+            create-enchantment-industry-fabric
+            create-new-age
+            interiors
+            bellsandwhistles
+            create-dynamic-lights:beta
+
+            farmers-delight-refabricated
+            expanded-delight:beta
+            crate-delight
+            storage-delight
+            oceans-delight
+            more-delight
+
+            immersive-armors
+            immersive-aircraft
+            immersive-melodies
+
+            lets-do-farm-charm
+            lets-do-bakery-farmcharm-compat:beta
+            lets-do-brewery-farmcharm-compat:beta
+            lets-do-candlelight-farmcharm-compat:beta
+            lets-do-herbalbrews
+            lets-do-meadow
+            lets-do-vinery
+            lets-do-beachparty
+            lets-do-camping
+
+            macaws-windows
+            macaws-fences-and-walls
+            macaws-furniture
+            macaws-stairs
+            macaws-trapdoors
+            macaws-bridges
+            macaws-lights-and-lamps
+            macaws-paths-and-pavings
+            macaws-doors
+            macaws-roofs
+            macaws-paintings
+
+            ae2
+            better-archeology
+            clutter
+            every-compat
+            natures-compass
+            explorers-compass
+            travelersbackpack
+            gliders
+            small-ships:beta
+            niftycarts
+            trash-cans
+            dramatic-doors
+            labels
+            universal-sawmill
+
+            datapack:mine-treasure
+            datapack:villager-transportation
+  volumes:
+    - name: minecraft-data
+      persistentVolumeClaim:
+        claimName: minecraft-data
