@@ -23,6 +23,11 @@ spec:
       volumeMounts:
       - name: minecraft-data
         mountPath: /data
+      securityContext:
+        capabilities:
+          add:
+          - CAP_NET_RAW
+            
       env:
         # General
         - name: TERM
@@ -50,6 +55,12 @@ spec:
           value: FALSE
         - name: SNOOPER_ENABLED
           value: FALSE
+        - name: MAX_TICK_TIME
+          value: -1
+        - name: ENABLE_AUTOPAUSE
+          value: TRUE
+        - name: AUTOPAUSE_KNOCK_INTERFACE
+          value: eth0
         # JVM Options
         - name: USE_AIKAR_FLAGS
           value: TRUE
@@ -89,8 +100,8 @@ spec:
             formations
             geckolib
             glitchcore:beta
+            midnightlib
             moonlight
-            patchouli:1.20.1-81-fabric
             playeranimator:beta
             resourceful-lib
             supermartijn642s-config-lib
@@ -121,9 +132,9 @@ spec:
             friends-and-foes-flowery-mooblooms-fabric
             lovely_snails
             more-mob-variants
-            mythic-mounts
             naturalist
             random-village-names
+            repurposed-structures-fabric
             ribbits
             smarter-farmers-farmers-replant
             villager-names-serilum
@@ -176,7 +187,6 @@ spec:
             create-new-age
             interiors
             bellsandwhistles
-            create-dynamic-lights:beta
 
             farmers-delight-refabricated
             expanded-delight:beta
@@ -192,11 +202,8 @@ spec:
             lets-do-farm-charm
             lets-do-bakery-farmcharm-compat:beta
             lets-do-brewery-farmcharm-compat:beta
-            lets-do-candlelight-farmcharm-compat:beta
             lets-do-herbalbrews
-            lets-do-meadow
             lets-do-vinery
-            lets-do-beachparty
             lets-do-camping
 
             macaws-windows
@@ -226,7 +233,12 @@ spec:
             labels
             universal-sawmill
 
+            datapack:camps_castles_carriages
             datapack:mine-treasure
+            datapack:repurposed-structures-farmers-delight-compat
+            datapack:repurposed-structures-friends-and-foes-compat
+            datapack:repurposed-structures-villagerplus-compat
+            datapack:tidal-towns
             datapack:villager-transportation
   volumes:
     - name: minecraft-data
