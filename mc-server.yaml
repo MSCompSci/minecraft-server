@@ -9,11 +9,27 @@ metadata:
   name: minecraft-server-pod
 spec:
   containers:
-    - name: minecraft-server
-      image: docker.io/itzg/minecraft-server:latest
+    - name: proxy-server
+      image: docker.io/itzg/mc-proxy:latest
+      env:
+        - name: TYPE
+          value: VELOCITY
+        - name: DEBUG
+          value: FALSE
+        - name: ENABLE_RCON
+          value: FALSE
       ports:
       - containerPort: 25565
         hostPort: 25565
+      volumeMounts:
+        - mountPath: /config/velocity.toml:ro
+          name: velocity-config
+        - mountPath: /config/forwarding.secret:ro
+          name: forwarding-secret
+        - mountPath: /server
+          name: proxy-data
+    - name: minecraft-server
+      image: docker.io/itzg/minecraft-server:latest
       resources:
         limits:
           cpu: 2
@@ -33,12 +49,12 @@ spec:
         - name: TERM
           value: xterm
         # Server
-        # - name: SERVER_NAME
-        #   value: 'Server Name'
-        # - name: MOTD
-        #   value: "Message of the Day"
-        # - name: ICON
-        #   value: https:// ...
+        - name: SERVER_NAME
+          value: 'Server Name'
+        - name: MOTD
+          value: "Message of the Day"
+        - name: ICON
+          value: https://github.com/MSCompSci/minecraft-server/blob/main/icons/server-icon.png
         - name: MAX_PLAYERS
           value: 6
         # - name: OPS
@@ -61,13 +77,6 @@ spec:
           value: TRUE
         - name: AUTOPAUSE_KNOCK_INTERFACE
           value: eth0
-        # JVM Options
-        - name: USE_AIKAR_FLAGS
-          value: TRUE
-        - name: INIT_MEMORY
-          value: 1G
-        - name: MAX_MEMORY
-          value: 6G
         # Minecraft Options
         - name: TYPE
           value: FABRIC
@@ -244,3 +253,14 @@ spec:
     - name: minecraft-data
       persistentVolumeClaim:
         claimName: minecraft-data
+    - name: velocity-config
+      hostPath:
+        type: File
+        path: ./velocity.toml
+    - name: forwarding-secret
+      hostPath:
+        type: File
+        path: ./forwarding.secret
+    - name: proxy-data
+      persistentVolumeClaim:
+        claimName: proxy-data
