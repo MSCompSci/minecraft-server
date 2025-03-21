@@ -5,12 +5,16 @@ kind: Pod
 metadata:
   creationTimestamp: "2025-03-15T00:14:00Z"
   labels:
-    app: minecraft-server-pod
-  name: minecraft-server-pod
+    app: minecraft-pod
+  name: minecraft-pod
 spec:
   containers:
-    - name: proxy-server
+    - name: proxy
       image: docker.io/itzg/mc-proxy:latest
+      resources:
+        limits:
+          cpu: 1
+          memory: 2Gi
       env:
         - name: TYPE
           value: VELOCITY
@@ -18,43 +22,48 @@ spec:
           value: FALSE
         - name: ENABLE_RCON
           value: FALSE
+        - name: ICON
+          value: /server-icon.png
+        - name: MINECRAFT_VERSION
+          value: 1.20.1
+        # - name: PLUGINS
+        #   value: |
+        #     https://github.com/TCPShield/RealIP/releases/download/2.8.1/TCPShield-2.8.1.jar
       ports:
-      - containerPort: 25565
+      - containerPort: 25577
         hostPort: 25565
       volumeMounts:
-        - mountPath: /config/velocity.toml:ro
-          name: velocity-config
-        - mountPath: /config/forwarding.secret:ro
-          name: forwarding-secret
-        - mountPath: /server
-          name: proxy-data
-    - name: minecraft-server
+        - name: velocity-config
+          mountPath: /config/velocity.toml:ro,Z
+        - name: forwarding-secret
+          mountPath: /config/forwarding.secret:ro,Z
+        - name: proxy-data
+          mountPath: /server:Z
+        - name: icon
+          mountpath: /server-icon.png:Z
+
+    - name: server
       image: docker.io/itzg/minecraft-server:latest
       resources:
         limits:
           cpu: 2
-          memory: 8Gi
+          memory: 6Gi
       stdin: TRUE
       tty: TRUE
       volumeMounts:
       - name: minecraft-data
-        mountPath: /data
-      securityContext:
-        capabilities:
-          add:
-          - CAP_NET_RAW
+        mountPath: /data:Z
+      - name: patches
+        mountPath: /patches:Z
+      # securityContext:
+      #   capabilities:
+      #     add:
+      #     - CAP_NET_RAW
             
       env:
-        # General
-        - name: TERM
-          value: xterm
         # Server
-        - name: SERVER_NAME
-          value: 'Server Name'
-        - name: MOTD
-          value: "Message of the Day"
-        - name: ICON
-          value: https://github.com/MSCompSci/minecraft-server/blob/main/icons/server-icon.png
+        - name: ONLINE_MODE
+          value: TRUE
         - name: MAX_PLAYERS
           value: 6
         # - name: OPS
@@ -67,16 +76,18 @@ spec:
           value: America/New_York
         - name: EULA
           value: TRUE
+        - name: PATCH_DEFINITIONS
+          value: /patches
         - name: ENABLE_RCON
           value: FALSE
         - name: SNOOPER_ENABLED
           value: FALSE
-        - name: MAX_TICK_TIME
-          value: -1
-        - name: ENABLE_AUTOPAUSE
-          value: TRUE
-        - name: AUTOPAUSE_KNOCK_INTERFACE
-          value: eth0
+        # - name: MAX_TICK_TIME
+        #   value: -1
+        # - name: ENABLE_AUTOPAUSE
+        #   value: TRUE
+        # - name: AUTOPAUSE_KNOCK_INTERFACE
+        #   value: eth0
         # Minecraft Options
         - name: TYPE
           value: FABRIC
@@ -91,7 +102,8 @@ spec:
           value: |
             fabric-api
             fabric-language-kotlin
-            
+            fabricproxy-lite
+
             architectury-api
             cardinal-components-api
             do-api
@@ -106,6 +118,7 @@ spec:
             botarium
             creativecore
             collective
+            dawn
             formations
             geckolib
             glitchcore:beta
@@ -134,7 +147,6 @@ spec:
 
             areas
             biomes-o-plenty:beta
-            creeper-overhaul
             formations-overworld
             friends-and-foes
             friends-and-foes-beekeeper-hut-fabric
@@ -142,13 +154,14 @@ spec:
             lovely_snails
             more-mob-variants
             naturalist
+            promenade
             random-village-names
             repurposed-structures-fabric
             ribbits
             smarter-farmers-farmers-replant
             villager-names-serilum
             villagersplus
-            
+
             carry-on
             crops-love-rain
             cycle-paintings
@@ -213,7 +226,6 @@ spec:
             lets-do-brewery-farmcharm-compat:beta
             lets-do-herbalbrews
             lets-do-vinery
-            lets-do-camping
 
             macaws-windows
             macaws-fences-and-walls
@@ -238,29 +250,45 @@ spec:
             small-ships:beta
             niftycarts
             trash-cans
-            dramatic-doors
-            labels
-            universal-sawmill
 
             datapack:camps_castles_carriages
-            datapack:mine-treasure
             datapack:repurposed-structures-farmers-delight-compat
             datapack:repurposed-structures-friends-and-foes-compat
             datapack:repurposed-structures-villagerplus-compat
             datapack:tidal-towns
             datapack:villager-transportation
+    
   volumes:
+    
     - name: minecraft-data
       persistentVolumeClaim:
         claimName: minecraft-data
+    
+    - name: fabric-proxy
+      hostPath:
+        type: File
+        path: ./velocity/FabricProxy-Lite.toml
+
+    - name: patches
+      hostPath:
+        type: Directory
+        path: ./patches
+
+    - name: icon
+      hostPath:
+        type: File
+        path: ./icons/server-icon.png
+
     - name: velocity-config
       hostPath:
         type: File
-        path: ./velocity.toml
+        path: ./velocity/velocity.toml
+
     - name: forwarding-secret
       hostPath:
         type: File
-        path: ./forwarding.secret
+        path: ./velocity/forwarding.secret
+
     - name: proxy-data
       persistentVolumeClaim:
         claimName: proxy-data
