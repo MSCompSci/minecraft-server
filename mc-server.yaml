@@ -5,40 +5,88 @@ kind: Pod
 metadata:
   creationTimestamp: "2025-03-15T00:14:00Z"
   labels:
-    app: minecraft-server-pod
-  name: minecraft-server-pod
+    app: minecraft-pod
+  name: minecraft-pod
+restartPolicy: never
 spec:
   containers:
-    - name: minecraft-server
-      image: docker.io/itzg/minecraft-server:latest
-      ports:
-      - containerPort: 25565
-        hostPort: 25565
+    - name: proxy
+      image: docker.io/itzg/mc-proxy:java21
       resources:
         limits:
-          cpu: 2
-          memory: 8Gi
+          cpu: 1
+          memory: 1Gi
+      env:
+        - name: TYPE
+          value: VELOCITY
+        - name: DEBUG
+          value: FALSE
+        - name: ENABLE_RCON
+          value: FALSE
+        - name: ICON
+          value: /server-icon.png
+        - name: MINECRAFT_VERSION
+          value: 1.20.1
+        # - name: PLUGINS
+        #   value: |
+        #     https://github.com/TCPShield/RealIP/releases/download/2.8.1/TCPShield-2.8.1.jar
+      ports:
+        - containerPort: 25577
+          hostPort: 25565
+      volumeMounts:
+        - name: velocity-config
+          mountPath: /config/velocity.toml:ro,Z
+        - name: forwarding-secret
+          mountPath: /config/forwarding.secret:ro,Z
+        - name: proxy-data
+          mountPath: /server:Z
+        - name: icon
+          mountpath: /server-icon.png:Z
+      securityContext:
+        privileged: false
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - CAP_DAC_OVERRIDE
+            - CAP_FOWNER
+            - CAP_FSETID
+            - CAP_NET_BIND_SERVICE
+            - CAP_SETFCAP
+            - CAP_SETPCAP
+            - CAP_SYS_CHROOT
+
+    - name: server
+      image: docker.io/itzg/minecraft-server:java21
+      resources:
+        limits:
+          memory: 6Gi
       stdin: TRUE
       tty: TRUE
       volumeMounts:
-      - name: minecraft-data
-        mountPath: /data
+        - name: minecraft-data
+          mountPath: /data:Z
+        - name: patches
+          mountPath: /patches:Z
       securityContext:
         capabilities:
-          add:
-          - CAP_NET_RAW
-            
+          privileged: false
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          # drop:
+          #   - CAP_CHOWN
+          #   - CAP_DAC_OVERRIDE
+          #   - CAP_FOWNER
+          #   - CAP_FSETID
+          #   - CAP_NET_BIND_SERVICE
+          #   - CAP_SETFCAP
+          #   - CAP_SETPCAP
+          #   - CAP_SYS_CHROOT
+
       env:
-        # General
-        - name: TERM
-          value: xterm
         # Server
-        # - name: SERVER_NAME
-        #   value: 'Server Name'
-        # - name: MOTD
-        #   value: "Message of the Day"
-        # - name: ICON
-        #   value: https:// ...
+        - name: ONLINE_MODE
+          value: TRUE
         - name: MAX_PLAYERS
           value: 6
         # - name: OPS
@@ -51,196 +99,185 @@ spec:
           value: America/New_York
         - name: EULA
           value: TRUE
+        - name: PATCH_DEFINITIONS
+          value: /patches
         - name: ENABLE_RCON
           value: FALSE
         - name: SNOOPER_ENABLED
           value: FALSE
-        - name: MAX_TICK_TIME
-          value: -1
-        - name: ENABLE_AUTOPAUSE
-          value: TRUE
-        - name: AUTOPAUSE_KNOCK_INTERFACE
-          value: eth0
-        # JVM Options
-        - name: USE_AIKAR_FLAGS
-          value: TRUE
-        - name: INIT_MEMORY
-          value: 1G
         - name: MAX_MEMORY
-          value: 6G
+          value: 4G
         # Minecraft Options
         - name: TYPE
+          value: MODRINTH
+        - name: MODRINTH_MODPACK
+          value: sop
+        - name: MODRINTH_LOADER
           value: FABRIC
-        - name: FABRIC_LOADER_VERSION
-          value: 0.16.10
         - name: VERSION
           value: 1.20.1
         # Mods
-        - name: MODRINTH_LOADER
-          value: FABRIC
         - name: MODRINTH_PROJECTS
           value: |
-            fabric-api
-            fabric-language-kotlin
-            
-            architectury-api
-            cardinal-components-api
-            do-api
-            yungs-api
+            fabricproxy-lite
+            crossstitch
 
-            cloth-config
-            fzzy-config
-            resourceful-config
-
-            balm
-            bookshelf-lib
-            botarium
-            creativecore
-            collective
-            formations
-            geckolib
-            glitchcore:beta
+            architectury-api:9.2.14+fabric
+            balm:7.3.24+fabric-1.20.1
+            bookshelf-lib:20.2.13
+            botarium:2.3.4
+            cardinal-components-api:5.2.3
+            collective:1.20.1-7.94-fabric+forge+neo
+            cristel-lib
+            dawn:v5.0.0
+            fabric-language-kotlin:1.12.3+kotlin.2.0.21
+            forge-config-api-port:v8.0.2-1.20.1-Fabric
+            geckolib:4.7
+            lithostitched
             midnightlib
-            moonlight
-            playeranimator:beta
-            resourceful-lib
-            supermartijn642s-config-lib
-            supermartijn642s-core-lib
-            terrablender:beta
-            trinkets
-            txnilib
-            yacl
+            moonlight:fabric_1.20-2.13.79
+            resourceful-lib:2.1.29
+            yacl:3.1.0+1.20-fabric
+            yungs-api:1.20-Fabric-4.0.6
 
-            c2me-fabric:alpha
             chunky
             clumps
-            debugify
-            ferrite-core
-            modernfix
-            no-chat-reports
-            noisium
-            threadtweak
-            vmp-fabric:alpha
-            yosbr
+            debugify:1.20.1+2.0
+            immersive-optimization
+            krypton:0.2.3
 
-            areas
-            biomes-o-plenty:beta
-            creeper-overhaul
-            formations-overworld
-            friends-and-foes
-            friends-and-foes-beekeeper-hut-fabric
-            friends-and-foes-flowery-mooblooms-fabric
-            lovely_snails
-            more-mob-variants
-            naturalist
-            random-village-names
-            repurposed-structures-fabric
-            ribbits
-            smarter-farmers-farmers-replant
-            villager-names-serilum
-            villagersplus
-            
-            carry-on
-            crops-love-rain
-            cycle-paintings
+            appleskin:2.5.1+mc1.20
+            jade:11.13.1+fabric
+            jade-addons-fabric:5.4.0+fabric
+            polymorph:z88tNWJh
+            trashslot:15.1.1+fabric-1.20
+            trinkets:3.7.2
+            xaeros-minimap:25.2.0
+            xaeros-world-map:1.39.4
+
+            botany-pots:13.0.40
+            botany-trees:9.0.18
+            comforts:6.4.0+1.20.1
+            displaycase:1.0.8
+            every-compat:1.20-2.7.24
+            explorers-compass:1.20.1-2.2.3-fabric
+            gliders:1.1.6+fabric
+            handcrafted:3.0.6
+            immersive-aircraft:1.2.2+1.20.1
+            immersive-armors:1.6.1+1.20.1
+            immersive-machinery:0.1.1+1.20.1
+            immersive-melodies:0.4.0+1.20.1
+            immersive-paintings:0.6.7+1.20.1
+            man-of-many-planes:0.2.0+1.20.1
+            natures-compass:1.20.1-2.2.3-fabric
+            niftycarts:20.1.3
+            small-ships:2.0.0-b1.4
+            stone-zone:1.20-2.7.14
+            travelersbackpack:1.20.1-9.1.29
+            universal-sawmill:1.20-1.4.6
+            village-bell-recipe
+            waystones:14.1.11+fabric-1.20.1
+            datapack:villager-transportation
+
+            bl4cks-sit:r27
+            carry-on:2.1.2.7
             dismount-entity
-            double-doors
-            extract-poison
-            fallingtree
             followers-teleport-too
-            furnace-recycle
-            grindstone-sharper-tools
-            kaffees_dual_ride
-            lootr
+            kaffees_dual_ride:1.1.0
+            lootr:0.7.35.85
             move-boats
             move-minecarts
             no-hostiles-around-campfire
             nutritious-milk
-            pet-names
+            smarter-farmers-farmers-replant
             villager-death-messages
-            village-bell-recipe
-            waystones
-            yigd
+            yigd:2.0.12
+            datapack:veinminer
 
-            appleskin
-            emi
-            emi-loot
-            jade
-            jade-addons-fabric
-            jei:beta
-            just-enough-professions-jep:beta
-            open-parties-and-claims:beta
-            trade-cycling
-            trashslot
-            xaeros-minimap
-            xaeros-world-map
+            friends-and-foes:fabric-mc1.20.1-3.0.8
+            friends-and-foes-flowery-mooblooms-fabric:fabric-mc1.20.1-2.0.2
+            ribbits:3.0.4
+            lovely_snails:1.1.3+1.20.1
+            more-mob-variants:1.3.1
+            naturalist:4.0.3
+            pet-names
+            villager-names-serilum
+            villagersplus:3.1
+            datapack:villagersplus-promenade-compatability
 
-            botany-pots
-            botany-trees
-
-            create-fabric:beta
-            slice-and-dice
-            createaddition:beta
-            create-deco
-            create-steam-n-rails
-            create-enchantment-industry-fabric
-            create-new-age
-            interiors
-            bellsandwhistles
-
-            farmers-delight-refabricated
-            expanded-delight:beta
-            crate-delight
-            storage-delight
-            oceans-delight
-            more-delight
-
-            immersive-armors
-            immersive-aircraft
-            immersive-melodies
-
-            lets-do-farm-charm
-            lets-do-bakery-farmcharm-compat:beta
-            lets-do-brewery-farmcharm-compat:beta
-            lets-do-herbalbrews
-            lets-do-vinery
-            lets-do-camping
-
-            macaws-windows
-            macaws-fences-and-walls
-            macaws-furniture
-            macaws-stairs
-            macaws-trapdoors
-            macaws-bridges
-            macaws-lights-and-lamps
-            macaws-paths-and-pavings
-            macaws-doors
-            macaws-roofs
-            macaws-paintings
-
-            ae2
-            better-archeology
-            clutter
-            every-compat
-            natures-compass
-            explorers-compass
-            travelersbackpack
-            gliders
-            small-ships:beta
-            niftycarts
-            trash-cans
-            dramatic-doors
-            labels
-            universal-sawmill
-
+            areas:1.20.1-6.1-fabric+forge+neo
+            ct-overhaul-village
+            friends-and-foes-beekeeper-hut-fabric
+            immersive-structures
+            promenade:v4.1.1
+            random-village-names
+            repurposed-structures-fabric
+            tectonic
+            terralith
+            towns-and-towers
             datapack:camps_castles_carriages
-            datapack:mine-treasure
-            datapack:repurposed-structures-farmers-delight-compat
+            datapack:ctov-friends-and-foes-compat
+            datapack:ctov-villagers-plus-compat
+            datapack:explorify
             datapack:repurposed-structures-friends-and-foes-compat
             datapack:repurposed-structures-villagerplus-compat
             datapack:tidal-towns
-            datapack:villager-transportation
+
+            ae2:15.3.3
+
+            create-fabric:0.5.1-f-build.1417+mc1.20.1
+            slice-and-dice:3.3.1
+            create-deco:2.0.2-1.20.1-fabric
+            create-steam-n-rails:1.6.4+fabric-mc1.20.1
+            create-new-age:1.1.2
+            create-jetpack:4.2.1
+            interiors:0.5.3+fabric-mc1.20.1
+            bellsandwhistles:0.4.5-mc1.20.1-fabric
+
+            farmers-delight-refabricated:1.20.1-2.3.0
+            expanded-delight:0.3.2
+            storage-delight:25.03.09-1.20-fabric
+            crate-delight:24.11.22-1.20-fabric
+            more-delight:25.01.13-1.20-fabric
+            datapack:repurposed-structures-farmers-delight-compat
+
+            lets-do-farm-charm:1.0.6
+            lets-do-vinery:1.4.39
+            lets-do-herbalbrews:1.0.11
+            lets-do-meadow:1.3.24
+            lets-do-bakery-farmcharm-compat:2.0.4
+            lets-do-brewery-farmcharm-compat:2.0.5
+
   volumes:
     - name: minecraft-data
       persistentVolumeClaim:
         claimName: minecraft-data
+
+    - name: fabric-proxy
+      hostPath:
+        type: File
+        path: ./velocity/FabricProxy-Lite.toml
+
+    - name: patches
+      hostPath:
+        type: Directory
+        path: ./patches
+
+    - name: icon
+      hostPath:
+        type: File
+        path: ./icons/server-icon.png
+
+    - name: velocity-config
+      hostPath:
+        type: File
+        path: ./velocity/velocity.toml
+
+    - name: forwarding-secret
+      hostPath:
+        type: File
+        path: ./velocity/forwarding.secret
+
+    - name: proxy-data
+      persistentVolumeClaim:
+        claimName: proxy-data

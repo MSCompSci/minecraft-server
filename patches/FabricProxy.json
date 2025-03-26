@@ -1,0 +1,13 @@
+
+{
+    "file": "/data/config/FabricProxy-Lite.toml",
+    "ops": [
+        {
+            "$put": {
+                "path": "$",
+                "key": "secret",
+                "value": "ExampleSecret"
+            }
+        }
+    ]
+}
