@@ -60,7 +60,7 @@ spec:
       image: docker.io/itzg/minecraft-server:java21
       resources:
         limits:
-          memory: 6Gi
+          memory: 8Gi
       stdin: TRUE
       tty: TRUE
       volumeMounts:
@@ -105,7 +105,7 @@ spec:
         - name: SNOOPER_ENABLED
           value: FALSE
         - name: MAX_MEMORY
-          value: 4G
+          value: 6G
         # Minecraft Options
         - name: TYPE
           value: MODRINTH
@@ -158,8 +158,6 @@ spec:
             immersive-aircraft:1.2.2+1.20.1
             immersive-melodies:0.4.0+1.20.1
             natures-compass:1.20.1-2.2.3-fabric
-            niftycarts:20.1.3
-            small-ships:2.0.0-b1.4
             travelersbackpack:1.20.1-9.1.29
             waystones:14.1.11+fabric-1.20.1
             datapack:villager-transportation
@@ -179,7 +177,6 @@ spec:
             friends-and-foes:fabric-mc1.20.1-3.0.8
             friends-and-foes-flowery-mooblooms-fabric:fabric-mc1.20.1-2.0.2
             ribbits:3.0.4
-            lovely_snails:1.1.3+1.20.1
             more-mob-variants:1.3.1
             naturalist:4.0.3
             pet-names
@@ -191,11 +188,8 @@ spec:
             ct-overhaul-village
             immersive-structures
             random-village-names
-            repurposed-structures-fabric
             datapack:camps_castles_carriages
             datapack:ctov-friends-and-foes-compat
-            datapack:repurposed-structures-friends-and-foes-compat
-            datapack:tidal-towns
 
             create-fabric:0.5.1-f-build.1417+mc1.20.1
             slice-and-dice:3.3.1
@@ -207,7 +201,6 @@ spec:
 
             farmers-delight-refabricated:1.20.1-2.3.0
             storage-delight:25.03.09-1.20-fabric
-            datapack:repurposed-structures-farmers-delight-compat
 
   volumes:
     - name: minecraft-data
